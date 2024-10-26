@@ -17,108 +17,29 @@
 <canvas id="gameCanvas" width="800" height="600"></canvas>
 
 <script>
-    // Inclua o código JavaScript aqui (classe GameLoop e outras)
-    
+
+    //Enum para Window Mode
 	const WindowMode = {
 		WINDOWED: 'windowed',
 		FULLSCREEN: 'fullscreen',
 		WINDOWED_FULLSCREEN: 'windowed_fullscreen'
 	};
 
+    //Enum para Buffering (wip)
 	const BufferingMode = {
 		DOUBLE: 2,   // Representa Double Buffering
 		TRIPLE: 3    // Representa Triple Buffering
 	};
 
-	class Game {
-		constructor(bufferingMode, windowMode) {
-			this.bufferingMode = bufferingMode;
-			this.windowMode = windowMode;
-			this.fps = 0;
-
-			// Declaração das variáveis de posição e velocidade do carrinho
-			this.carPositionX = 0;
-			this.carSpeed = 2;
-
-			// Inicializa a janela do jogo
-			this.initWindow();
-		}
-
-		initWindow() {
-			const canvas = document.getElementById('gameCanvas');
-			canvas.width = canvas.width || 800;
-			canvas.height = canvas.height || 600;
-
-			if (this.windowMode === WindowMode.FullScreen || this.windowMode === WindowMode.WindowedFullScreen) {
-				this.setFullScreen();
-			}
-		}
-
-		setFullScreen() {
-			const canvas = document.getElementById('gameCanvas');
-			if (this.windowMode === WindowMode.FullScreen && document.fullscreenEnabled) {
-				canvas.requestFullscreen();
-			} else {
-				canvas.style.position = 'fixed';
-				canvas.style.top = 0;
-				canvas.style.left = 0;
-				canvas.style.width = '100%';
-				canvas.style.height = '100%';
-			}
-		}
-
-		setCurrentFPS(fps) {
-			this.fps = fps;
-		}
-
-		processInput() {
-			// Placeholder para processar entradas do usuário
-		}
-
-		update() {
-			// Placeholder para lógica de atualização do jogo
-		}
-
-		render() {
-			const canvas = document.getElementById('gameCanvas');
-			const ctx = canvas.getContext('2d');
-			ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-			// Verifica se o carrinho chegou ao final da tela e inverte a direção
-			if (this.carPositionX > canvas.width - 50 || this.carPositionX < 0) {
-				this.carSpeed = -this.carSpeed;
-			}
-
-			// Atualiza a posição do carrinho
-			this.carPositionX += this.carSpeed;
-
-			// Desenha o carrinho (retângulo simples)
-			ctx.fillStyle = 'blue';
-			ctx.fillRect(this.carPositionX, canvas.height - 50, 50, 30);
-
-			// Desenha as rodas do carrinho
-			ctx.fillStyle = 'black';
-			ctx.beginPath();
-			ctx.arc(this.carPositionX + 10, canvas.height - 20, 7, 0, Math.PI * 2);
-			ctx.fill();
-
-			ctx.beginPath();
-			ctx.arc(this.carPositionX + 40, canvas.height - 20, 7, 0, Math.PI * 2);
-			ctx.fill();
-
-			// Desenha os FPS na tela
-			ctx.font = '20px Arial';
-			ctx.fillStyle = 'red';
-			ctx.fillText(`FPS: ${this.fps}`, 10, 30);
-		}
-	}
-
-
+    /**
+     * Gameloop class
+     */
     class GameLoop {
+
         constructor(targetFPS, game) {
             this.running = false;
             this.targetFPS = targetFPS;
-            this.timePerTick = targetFPS > 0 ? 1000 / targetFPS : 0; // Convertendo para milissegundos
+            this.timePerTick = targetFPS > 0 ? 1000 / targetFPS : 0;
             this.game = game;
         }
 
@@ -132,7 +53,7 @@
             if (this.targetFPS > 0) {
                 this.loopWithFPSLimit();
             } else {
-                this.loopUnlimited();
+                this.loopRequestAnimationFrame();
             }
         }
 
@@ -181,7 +102,8 @@
             loop();
         }
 
-        loopUnlimited() {
+        //loop com Request Animation Frame
+        loopRequestAnimationFrame() {
             let frames = 0;
             let timer = 0;
 			let before = 0;
@@ -202,18 +124,108 @@
                     timer = 0;
 	            }
 
-				//setTimeout(loop, 1);
-                requestAnimationFrame(loop); // Para garantir uma execução contínua e suave
+                requestAnimationFrame(loop);
             };
 
             loop();
         }
     }
 
-    // Inicialização do jogo
-    const game = new Game(BufferingMode.DOUBLE, WindowMode.WINDOWED);
-    const gameLoop = new GameLoop(200, game); // 00 FPS como padrão
-    gameLoop.start();
+    /**
+     * Game class
+     */
+	class Game {
+
+		constructor(bufferingMode, windowMode, FPS) {
+			this.bufferingMode = bufferingMode;
+			this.windowMode = windowMode;
+			this.fps = 0;
+
+			this.carPositionX = 0;
+			this.carSpeed = 2;
+
+            this.gameLoop = new GameLoop(FPS, this);
+
+			// Inicializa a janela do jogo
+			this.initWindow();
+		}
+
+        start() {
+			this.gameLoop.start();
+		}
+
+		initWindow() {
+			const canvas = document.getElementById('gameCanvas');
+			canvas.width = canvas.width || 800;
+			canvas.height = canvas.height || 600;
+
+			if (this.windowMode === WindowMode.FULLSCREEN || this.windowMode === WindowMode.WINDOWED_FULLSCREEN) {
+				this.setFullScreen();
+			}
+		}
+
+		setFullScreen() {
+			const canvas = document.getElementById('gameCanvas');
+			if (this.windowMode === WindowMode.FullScreen && document.fullscreenEnabled) {
+				canvas.requestFullscreen();
+			} else {
+				canvas.style.position = 'fixed';
+				canvas.style.top = 0;
+				canvas.style.left = 0;
+				canvas.style.width = '100%';
+				canvas.style.height = '100%';
+			}
+		}
+
+		setCurrentFPS(fps) {
+			this.fps = fps;
+		}
+
+		processInput() {
+			// Placeholder para processar entradas do usuÃ¡rio
+		}
+
+		update() {
+			// Placeholder para lÃ³gica de atualizaÃ§Ã£o do jogo
+		}
+
+		render() {
+			const canvas = document.getElementById('gameCanvas');
+			const ctx = canvas.getContext('2d');
+			ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+			// Verifica se o carrinho chegou ao final da tela e inverte a direï¿½ï¿½o
+			if (this.carPositionX > canvas.width - 50 || this.carPositionX < 0) {
+				this.carSpeed = -this.carSpeed;
+			}
+
+			// Atualiza a posiÃ§Ã£o do carrinho
+			this.carPositionX += this.carSpeed;
+
+			// Desenha o carrinho (retÃ¢ngulo simples)
+			ctx.fillStyle = 'blue';
+			ctx.fillRect(this.carPositionX, canvas.height - 50, 50, 30);
+
+			// Desenha as rodas do carrinho
+			ctx.fillStyle = 'black';
+			ctx.beginPath();
+			ctx.arc(this.carPositionX + 10, canvas.height - 20, 7, 0, Math.PI * 2);
+			ctx.fill();
+
+			ctx.beginPath();
+			ctx.arc(this.carPositionX + 40, canvas.height - 20, 7, 0, Math.PI * 2);
+			ctx.fill();
+
+			// Desenha os FPS na tela
+			ctx.font = '20px Arial';
+			ctx.fillStyle = 'red';
+			ctx.fillText(`FPS: ${this.fps}`, 10, 30);
+		}
+	}
+
+    // Inicializa o jogo
+    const game = new Game(BufferingMode.DOUBLE, WindowMode.FULLSCREEN, 0);
+    game.start();
 
 </script>
 
